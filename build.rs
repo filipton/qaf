@@ -7,7 +7,7 @@ fn main() {
     path.push("src");
     path.push(PAGES_DIR);
 
-    panic!("{:?}", path);
+    //panic!("{:?}", path);
 
     println!("cargo:rerun-if-changed=build.rs");
 }
