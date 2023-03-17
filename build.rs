@@ -1,9 +1,10 @@
 const PAGES_DIR: &'static str = "src/pages";
 const LIB_PATH: &'static str = "src/lib.rs";
 
+use core::fmt;
 use std::path::PathBuf;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct PageEntry {
     name: String,
     children: Vec<PageEntry>,
@@ -15,7 +16,7 @@ fn main() {
 
     let entries: PageEntry = PageEntry::from_walk_dir(pages);
 
-    panic!("{:?}", entries);
+    panic!("{}", entries);
 
     println!("cargo:rerun-if-changed=build.rs");
 }
@@ -48,5 +49,23 @@ impl PageEntry {
             name: dir_name,
             children,
         };
+    }
+}
+
+impl fmt::Display for PageEntry {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "pub mod {}", self.name)?;
+
+        if self.children.len() > 0 {
+            write!(f, " {{ \n")?;
+            for child in self.children.clone() {
+                child.fmt(f)?;
+            }
+            write!(f, "}} \n")?;
+        } else {
+            write!(f, "; \n")?;
+        }
+
+        Ok(())
     }
 }
