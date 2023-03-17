@@ -1,6 +1,6 @@
 use actix_web::{App, HttpServer};
 
-mod pages;
+mod lib;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
