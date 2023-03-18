@@ -9,6 +9,7 @@ use syn::ItemFn;
 #[derive(Debug, Clone)]
 struct PageEntry {
     name: String,
+    is_dir: bool,
     children: Vec<PageEntry>,
 }
 
@@ -69,6 +70,7 @@ impl PageEntry {
 
                     children.push(PageEntry {
                         name: file_name,
+                        is_dir: entry.file_type().unwrap().is_dir(),
                         children: vec![],
                     })
                 }
@@ -80,6 +82,7 @@ impl PageEntry {
 
         return PageEntry {
             name: dir_name,
+            is_dir: true,
             children,
         };
     }
@@ -173,8 +176,11 @@ impl PageEntry {
 
 impl fmt::Display for PageEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "pub mod {}", self.name)?;
+        if self.is_dir && self.children.len() == 0 {
+            return Ok(());
+        }
 
+        write!(f, "pub mod {}", self.name)?;
         if self.children.len() > 0 {
             write!(f, " {{ \n")?;
             for child in self.children.clone() {
