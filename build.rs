@@ -19,15 +19,13 @@ fn main() {
     let main_file = PathBuf::from(MAIN_PATH);
     let main_template = PathBuf::from(MAIN_TEMPLATE_PATH);
 
-    let entries: PageEntry = PageEntry::from_walk_dir(pages, 0);
+    let entries: PageEntry = PageEntry::generate(pages, 0);
     let lib_str = format!("{}", entries);
-
-    //panic!("{:#?}", entries);
-    let test_path = PathBuf::from("src/pages/test.rs");
-    let endpoints = PageEntry::get_actix_endpoints(test_path).unwrap();
+    let services_str = entries.generate_services(PathBuf::from("src"), "", true);
 
     let mut main_template_content = std::fs::read_to_string(main_template).unwrap();
     main_template_content = main_template_content.replace("//MOD_PAGES", &lib_str);
+    main_template_content = main_template_content.replace("//SERVICES", &services_str);
 
     std::fs::write(main_file, main_template_content).unwrap();
 
@@ -36,7 +34,7 @@ fn main() {
 }
 
 impl PageEntry {
-    pub fn from_walk_dir(dir: PathBuf, tab: usize) -> PageEntry {
+    pub fn generate(dir: PathBuf, tab: usize) -> PageEntry {
         let mut children: Vec<PageEntry> = Vec::new();
 
         for entry in dir.read_dir().unwrap() {
@@ -44,7 +42,7 @@ impl PageEntry {
                 let file_type = entry.file_type().unwrap();
 
                 if file_type.is_dir() {
-                    children.push(PageEntry::from_walk_dir(entry.path(), tab + 1));
+                    children.push(PageEntry::generate(entry.path(), tab + 1));
                 } else if file_type.is_file() {
                     let file_name = entry
                         .file_name()
@@ -73,7 +71,37 @@ impl PageEntry {
         };
     }
 
-    //pub fn generate_services(&self, tab: usize) -> String {}
+    pub fn generate_services(&self, path: PathBuf, use_path: &str, first: bool) -> String {
+        let mut tmp = String::new();
+
+        let use_path = format!("{}{}::", use_path, self.name);
+
+        let mut path = path;
+        path.push(&self.name);
+
+        tmp += &format!(
+            ".service(web::scope(\"{}\")\n",
+            if first { "/" } else { &self.name }
+        );
+
+        for child in self.children.clone() {
+            if child.children.len() > 0 {
+                tmp += &child.generate_services(path.clone(), &use_path, false);
+                continue;
+            }
+
+            let mut tmp_path = path.clone();
+            tmp_path.push(format!("{}.rs", child.name));
+            let tmp_use_path = format!("{}{}::", use_path, child.name);
+
+            for endpoint in PageEntry::get_actix_endpoints(tmp_path).unwrap_or(vec![]) {
+                tmp += &format!(".service({}{})\n", tmp_use_path, endpoint);
+            }
+        }
+
+        tmp += ")";
+        return tmp;
+    }
 
     pub fn get_actix_endpoints(path: PathBuf) -> Result<Vec<String>, std::io::Error> {
         let file_content = std::fs::read_to_string(path)?;
@@ -93,7 +121,7 @@ impl PageEntry {
             })
             .collect();
 
-        panic!("{:?}", functions);
+        return Ok(functions);
     }
 
     const ACTIX_MACROS: [&'static str; 7] =
