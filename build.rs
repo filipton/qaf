@@ -20,9 +20,11 @@ fn main() {
     let services_str = entries.generate_services();
 
     let services = format!(
-        r#"pub fn generated_scope() -> actix_web::Scope {{
-        {}
-    }}"#,
+        r#"
+        pub fn generated_scope() -> actix_web::Scope {{
+            {}
+        }}
+        "#,
         services_str
     );
 
@@ -38,8 +40,8 @@ fn main() {
         "#,
         lib_str, services
     );
-    main_template_content = RustFmt::new().format_str(main_template_content).unwrap();
 
+    main_template_content = RustFmt::new().format_str(main_template_content).unwrap();
     std::fs::write(SCOPE_PATH, main_template_content).unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
@@ -84,7 +86,20 @@ impl PageEntry {
 
     pub fn generate_services(&self) -> String {
         let mut tmp = String::from("web::scope(\"\")");
-        tmp += &self._generate_services(PathBuf::from("src"), "");
+
+        for child in &self.children {
+            if child.children.len() > 0 {
+                tmp += &*child._generate_services(PathBuf::from("src/pages"), "pages::");
+                continue;
+            }
+
+            let mut path = PathBuf::from(PAGES_DIR);
+            path.push(format!("{}.rs", child.name));
+
+            for endpoint in PageEntry::get_actix_endpoints(path).unwrap_or(vec![]) {
+                tmp += &format!(".service(pages::{}::{})", child.name, endpoint);
+            }
+        }
 
         return tmp;
     }
