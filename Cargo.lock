@@ -418,6 +418,7 @@ name = "fn-stack"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "rust-format",
  "syn 1.0.109",
  "tokio",
  "tokio-tungstenite",
@@ -813,6 +814,12 @@ name = "regex-syntax"
 version = "0.6.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
+
+[[package]]
+name = "rust-format"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60e7c00b6c3bf5e38a880eec01d7e829d12ca682079f8238a464def3c4b31627"
 
 [[package]]
 name = "rustc_version"

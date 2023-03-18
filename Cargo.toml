@@ -13,3 +13,4 @@ tokio-tungstenite = "0.18.0"
 
 [build-dependencies]
 syn = { version = "1.0.109", features = ["full"] }
+rust-format = "0.3.4"
