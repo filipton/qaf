@@ -5,6 +5,8 @@ const MAIN_TEMPLATE_PATH: &'static str = "main.template.rs";
 use core::fmt;
 use std::path::PathBuf;
 
+use syn::{Ident, ItemFn};
+
 #[derive(Debug, Clone)]
 struct PageEntry {
     name: String,
@@ -21,10 +23,8 @@ fn main() {
     let lib_str = format!("{}", entries);
 
     //panic!("{:#?}", entries);
-
-    let test = PathBuf::from("src/pages/test.rs");
-    let dsa = PageEntry::get_actix_endpoints(test).unwrap();
-    panic!("{:?}", dsa);
+    let test_path = PathBuf::from("src/pages/test.rs");
+    let endpoints = PageEntry::get_actix_endpoints(test_path).unwrap();
 
     let mut main_template_content = std::fs::read_to_string(main_template).unwrap();
     main_template_content = main_template_content.replace("//MOD_PAGES", &lib_str);
@@ -76,31 +76,40 @@ impl PageEntry {
     //pub fn generate_services(&self, tab: usize) -> String {}
 
     pub fn get_actix_endpoints(path: PathBuf) -> Result<Vec<String>, std::io::Error> {
-        let mut output: Vec<String> = Vec::new();
         let file_content = std::fs::read_to_string(path)?;
-        let file_lines: Vec<&str> = file_content.lines().map(|x| x).collect();
 
-        let mut actix_macro = false;
-        for i in 0..file_lines.len() {
-            let line = file_lines[i];
+        let syntax = syn::parse_file(&file_content).unwrap();
+        let functions: Vec<String> = syntax
+            .items
+            .iter()
+            .filter_map(|item| {
+                if let syn::Item::Fn(item_fn) = item {
+                    if PageEntry::is_actix_attr(item_fn) {
+                        return Some(item_fn.sig.ident.to_string());
+                    }
+                }
 
-            if line.starts_with("#[post(")
-                || line.starts_with("#[get(")
-                || line.starts_with("#[put(")
-                || line.starts_with("#[delete(")
-            {
-                actix_macro = true;
-                continue;
+                None
+            })
+            .collect();
+
+        panic!("{:?}", functions);
+    }
+
+    const ACTIX_MACROS: [&'static str; 7] =
+        ["get", "post", "put", "delete", "head", "options", "patch"];
+
+    fn is_actix_attr(item: &ItemFn) -> bool {
+        for attr in item.attrs.clone() {
+            for segment in attr.path.segments {
+                let ident = segment.ident.to_string();
+                if PageEntry::ACTIX_MACROS.contains(&ident.as_str()) {
+                    return true;
+                }
             }
-
-            if actix_macro && line.contains("fn ") {
-                let fn_name = line.split("fn ").nth(1).unwrap().split("(").nth(0).unwrap();
-                output.push(String::from(fn_name));
-            }
-            actix_macro = false;
         }
 
-        return Ok(output);
+        return false;
     }
 }
 

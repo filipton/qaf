@@ -10,3 +10,6 @@ build = "build.rs"
 actix-web = "4.3.1"
 tokio = { version = "1.26.0", features = ["full"] }
 tokio-tungstenite = "0.18.0"
+
+[build-dependencies]
+syn = { version = "1.0.109", features = ["full"] }
