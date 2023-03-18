@@ -81,7 +81,7 @@ impl PageEntry {
 
         tmp += &format!(
             ".service(web::scope(\"{}\")\n",
-            if first { "/" } else { &self.name }
+            if first { "" } else { &self.name }
         );
 
         for child in self.children.clone() {
