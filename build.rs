@@ -1,5 +1,6 @@
 const PAGES_DIR: &'static str = "src/pages";
-const LIB_PATH: &'static str = "src/lib.rs";
+const MAIN_PATH: &'static str = "src/main.rs";
+const MAIN_TEMPLATE_PATH: &'static str = "main.template.rs";
 
 use core::fmt;
 use std::path::PathBuf;
@@ -13,12 +14,16 @@ struct PageEntry {
 
 fn main() {
     let pages = PathBuf::from(PAGES_DIR);
-    let lib = PathBuf::from(LIB_PATH);
+    let main_file = PathBuf::from(MAIN_PATH);
+    let main_template = PathBuf::from(MAIN_TEMPLATE_PATH);
 
     let entries: PageEntry = PageEntry::from_walk_dir(pages, 0);
     let lib_str = format!("{}", entries);
 
-    std::fs::write(lib, lib_str).unwrap();
+    let mut main_template_content = std::fs::read_to_string(main_template).unwrap();
+    main_template_content = main_template_content.replace("//MOD_PAGES", &lib_str);
+
+    std::fs::write(main_file, main_template_content).unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/pages");

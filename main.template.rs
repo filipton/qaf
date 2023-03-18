@@ -8,13 +8,4 @@ async fn main() -> std::io::Result<()> {
         .await
 }
 
-pub mod pages { 
-	pub mod inner { 
-		pub mod test2; 
-		pub mod nested { 
-			pub mod siema; 
-		} 
-	} 
-	pub mod test; 
-} 
-
+//MOD_PAGES
