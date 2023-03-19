@@ -8,6 +8,8 @@ build = "build.rs"
 
 [dependencies]
 actix-web = "4.3.1"
+dotenvy = "0.15.6"
+sqlx = { version = "0.6.2", features = ["postgres", "macros", "runtime-tokio-rustls"] }
 tokio = { version = "1.26.0", features = ["full"] }
 tokio-tungstenite = "0.18.0"
 

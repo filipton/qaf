@@ -79,6 +79,7 @@ impl PageEntry {
 
         // WTF???
         let dir_name = dir.file_name().unwrap().to_str().unwrap().to_owned();
+        children.sort_by_key(|k| k.is_dir);
 
         return PageEntry {
             name: dir_name,
