@@ -507,6 +507,7 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "dotenvy",
+ "rand",
  "rust-format",
  "sqlx",
  "syn 1.0.109",

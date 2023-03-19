@@ -18,8 +18,8 @@ pub mod pages {
 
 pub fn generated_scope() -> actix_web::Scope {
     web::scope("")
-        .service(pages::test::get_test_index)
-        .service(pages::test::get_post_index)
+        .service(pages::test::get_tests)
+        .service(pages::test::add_test)
         .service(pages::another::get_test2_index)
         .service(
             web::scope("inner")
