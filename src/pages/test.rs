@@ -34,6 +34,7 @@ pub async fn add_test(data: Data<AppState>) -> impl Responder {
     return HttpResponse::Ok().body(format!("Hello {:?}!", row));
 }
 
+// THIS WONT BE ADDED TO THE ACTIX SCOPE
 pub async fn get_post_indedsadsadx() -> impl Responder {
     return HttpResponse::Ok().body("Hello wordl!");
 }
