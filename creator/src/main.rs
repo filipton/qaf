@@ -4,7 +4,14 @@ use anyhow::{anyhow, Result};
 use creator::ProjectOptions;
 use which::which;
 
-fn main() -> Result<()> {
+fn main() {
+    let res = create_app();
+    if res.is_err() {
+        println!("\x1b[31mError: {}\x1b[0m", res.unwrap_err());
+    }
+}
+
+fn create_app() -> Result<()> {
     let git_path = which("git").expect("Git is not installed!");
 
     // TODO: change this later
@@ -19,8 +26,7 @@ fn main() -> Result<()> {
         let cmd = Command::new(&git_path)
             .current_dir(&options.name)
             .arg("init")
-            .output()
-            .unwrap();
+            .output()?;
 
         if !cmd.status.success() {
             return Err(anyhow!("Error while initalizing git repo!"));
@@ -31,8 +37,7 @@ fn main() -> Result<()> {
                 templates_path.join("README.md"),
                 &options.path.join("README.md"),
             )
-            .map_err(|_| anyhow!("Error while copying README.md template!"))
-            .unwrap();
+            .map_err(|_| anyhow!("Error while copying README.md template!"))?;
         }
     }
 
