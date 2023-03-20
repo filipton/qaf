@@ -1,6 +1,9 @@
+use std::path::PathBuf;
+
 #[derive(Debug, Default)]
 pub struct ProjectOptions {
     pub name: String,
+    pub path: PathBuf,
     pub init_git: bool,
     pub generate_readme: bool,
     pub web_server: WebServer,
@@ -16,6 +19,7 @@ impl ProjectOptions {
             .with_initial_value("my-awesome-project")
             .prompt();
         options.name = project_name.unwrap();
+        options.path = PathBuf::from("./").join(&options.name);
 
         let init_git = inquire::Confirm::new("Initialize git repository?").prompt();
         options.init_git = init_git.unwrap();
