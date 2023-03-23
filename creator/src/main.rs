@@ -50,6 +50,10 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
 
         let metadata = entry.metadata()?;
         if metadata.is_dir() {
+            if file_name == ".git" {
+                continue;
+            }
+
             std::fs::create_dir(&_path_to)?;
             walkdir_copy(&entry.path(), &_path_to, options)?;
         } else if metadata.is_file() {
