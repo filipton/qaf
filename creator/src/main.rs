@@ -28,17 +28,44 @@ fn create_app() -> Result<()> {
 
     if options.init_git {
         println!("Initalizing git...");
-        let cmd = Command::new(&git_path)
-            .current_dir(&options.name)
-            .arg("init")
-            .output()?;
-
-        if !cmd.status.success() {
-            return Err(anyhow!("Error while initalizing git repo!"));
-        }
+        init_git(git_path, &options)?;
     }
 
     println!("DONE!!!");
+    Ok(())
+}
+
+fn init_git(git_path: PathBuf, options: &ProjectOptions) -> Result<()> {
+    // git init
+    let cmd = Command::new(&git_path)
+        .current_dir(&options.name)
+        .arg("init")
+        .output()?;
+    if !cmd.status.success() {
+        return Err(anyhow!("Error while initalizing git repo!"));
+    }
+
+    // git add .
+    let cmd = Command::new(&git_path)
+        .current_dir(&options.name)
+        .arg("add")
+        .arg(".")
+        .output()?;
+    if !cmd.status.success() {
+        return Err(anyhow!("Error while executing \"git add .\"!"));
+    }
+
+    // git commit
+    let cmd = Command::new(&git_path)
+        .current_dir(&options.name)
+        .arg("commit")
+        .arg("-am")
+        .arg("\"Initial commit\"")
+        .output()?;
+    if !cmd.status.success() {
+        return Err(anyhow!("Error while commiting!"));
+    }
+
     Ok(())
 }
 
