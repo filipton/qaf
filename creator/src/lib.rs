@@ -32,8 +32,11 @@ impl ProjectOptions {
         let web_server = inquire::Select::new("Select web server:", WebServer::variants()).prompt();
         options.web_server = WebServer::from_str(web_server.unwrap()).unwrap();
 
-        let websocket_server =
-            inquire::Select::new("Select websocket server:", WebsocketServer::variants()).prompt();
+        let websocket_server = inquire::Select::new(
+            "Select websocket server:",
+            WebsocketServer::variants(&options.web_server),
+        )
+        .prompt();
         options.websocket_server = WebsocketServer::from_str(websocket_server.unwrap());
 
         let database = inquire::Select::new("Select database:", Database::variants()).prompt();
@@ -73,8 +76,11 @@ pub enum WebsocketServer {
 }
 
 impl<'a> WebsocketServer {
-    pub fn variants() -> Vec<&'a str> {
-        vec!["Actix", "Tungstenite", "Off"]
+    pub fn variants(web_server: &WebServer) -> Vec<&'a str> {
+        match web_server {
+            WebServer::Actix => vec!["Actix", "Tungstenite", "Off"],
+            WebServer::Axum => vec!["Tungstenite", "Off"],
+        }
     }
 
     pub fn from_str(s: &str) -> Option<Self> {

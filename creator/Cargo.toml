@@ -1,5 +1,5 @@
 [package]
-name = "creator"
+name = "cargo-fnstack"
 version = "0.1.0"
 edition = "2021"
 
