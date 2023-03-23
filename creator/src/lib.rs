@@ -5,7 +5,6 @@ pub struct ProjectOptions {
     pub name: String,
     pub path: PathBuf,
     pub init_git: bool,
-    pub generate_readme: bool,
     pub web_server: WebServer,
     pub websocket_server: Option<WebsocketServer>,
     pub database: Option<Database>,
@@ -23,11 +22,6 @@ impl ProjectOptions {
 
         let init_git = inquire::Confirm::new("Initialize git repository?").prompt();
         options.init_git = init_git.unwrap();
-
-        if options.init_git {
-            let generate_readme = inquire::Confirm::new("Generate README.md?").prompt();
-            options.generate_readme = generate_readme.unwrap();
-        }
 
         let web_server = inquire::Select::new("Select web server:", WebServer::variants()).prompt();
         options.web_server = WebServer::from_str(web_server.unwrap()).unwrap();
@@ -55,7 +49,8 @@ pub enum WebServer {
 
 impl<'a> WebServer {
     pub fn variants() -> Vec<&'a str> {
-        vec!["Actix", "Axum"]
+        //vec!["Actix", "Axum"]
+        vec!["Actix"]
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
@@ -77,10 +72,13 @@ pub enum WebsocketServer {
 
 impl<'a> WebsocketServer {
     pub fn variants(web_server: &WebServer) -> Vec<&'a str> {
+        vec!["Tungstenite", "Off"]
+        /*
         match web_server {
             WebServer::Actix => vec!["Actix", "Tungstenite", "Off"],
             WebServer::Axum => vec!["Tungstenite", "Off"],
         }
+        */
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
@@ -101,12 +99,12 @@ pub enum Database {
 
 impl<'a> Database {
     pub fn variants() -> Vec<&'a str> {
-        vec!["Postgres", "Off"]
+        vec!["Postgres(SQLX)", "Off"]
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
-            "Postgres" => Some(Database::Postgres),
+            "Postgres(SQLX)" => Some(Database::Postgres),
             _ => None,
         }
     }

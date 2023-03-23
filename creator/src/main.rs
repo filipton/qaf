@@ -21,7 +21,10 @@ fn create_app() -> Result<()> {
     let options = ProjectOptions::prompt();
 
     println!("Creating project dir...");
-    std::fs::create_dir(&options.name)?;
+    std::fs::create_dir(&options.path)?;
+
+    println!("Copying files...");
+    walkdir_copy(&templates_path, &options.path, &options)?;
 
     if options.init_git {
         println!("Initalizing git...");
@@ -33,16 +36,39 @@ fn create_app() -> Result<()> {
         if !cmd.status.success() {
             return Err(anyhow!("Error while initalizing git repo!"));
         }
+    }
 
-        if options.generate_readme {
-            std::fs::copy(
-                templates_path.join("README.md"),
-                &options.path.join("README.md"),
-            )
-            .map_err(|_| anyhow!("Error while copying README.md template!"))?;
+    println!("DONE!!!");
+    Ok(())
+}
+
+fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions) -> Result<()> {
+    for entry in path_from.read_dir()? {
+        let entry = entry?;
+        let file_name = entry.file_name().into_string().unwrap();
+        let _path_to = path_to.join(&file_name);
+
+        let metadata = entry.metadata()?;
+        if metadata.is_dir() {
+            std::fs::create_dir(&_path_to)?;
+            walkdir_copy(&entry.path(), &_path_to, options)?;
+        } else if metadata.is_file() {
+            if file_name.starts_with("[GEN]") {
+                let file_str = std::fs::read_to_string(entry.path())?;
+                let file_str = inject_project_options(&file_str, options);
+
+                std::fs::write(path_to.join(file_name.replace("[GEN]", "")), file_str)?;
+            } else {
+                std::fs::copy(entry.path(), _path_to)?;
+            }
         }
     }
 
-    println!("{:?}, {:?}", options, git_path);
     Ok(())
+}
+
+fn inject_project_options(string: &str, options: &ProjectOptions) -> String {
+    string
+        .replace("[[PROJECT_NAME]]", &options.name)
+        .replace("[[RUST_PROJECT_NAME]]", &options.name.replace("-", "_"))
 }
