@@ -9,5 +9,6 @@ edition = "2021"
 anyhow = "1.0.70"
 clap = { version = "4.1.13", features = ["derive"] }
 clap_derive = "4.1.12"
+crossterm = "0.26.1"
 inquire = "0.6.0"
 which = "4.4.0"

@@ -3,10 +3,12 @@ use clap::{command, Parser, Subcommand};
 use creator::create_app;
 use std::path::PathBuf;
 use template_utils::{clone_templates, update_templates};
+use utils::AlternateScreenCleanup;
 use which::which;
 
 mod creator;
 mod template_utils;
+mod utils;
 
 pub const TEMPLATES_REPO: &str = "https://github.com/filipton/fn-stack-templates";
 
@@ -21,6 +23,7 @@ struct CliArgs {
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
     Update,
+    Dev,
 }
 
 fn main() {
@@ -60,8 +63,16 @@ fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
     if let Some(cmd) = args.command.clone() {
         match cmd {
             Commands::Update => update_templates(templates_path)?,
+            Commands::Dev => dev()?,
         }
     }
+
+    Ok(())
+}
+
+fn dev() -> Result<()> {
+    let _clean_up = AlternateScreenCleanup::new()?;
+    std::thread::sleep(std::time::Duration::from_secs(10));
 
     Ok(())
 }
