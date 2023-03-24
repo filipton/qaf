@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::path::PathBuf;
 
 #[derive(Debug, Default)]
@@ -11,32 +12,33 @@ pub struct ProjectOptions {
 }
 
 impl ProjectOptions {
-    pub fn prompt() -> Self {
+    pub fn prompt() -> Result<Self> {
         let mut options = ProjectOptions::default();
 
         let project_name = inquire::Text::new("Project name: ")
             .with_initial_value("my-awesome-project")
-            .prompt();
-        options.name = project_name.unwrap();
+            .prompt()?;
+        options.name = project_name;
         options.path = PathBuf::from("./").join(&options.name);
 
-        let init_git = inquire::Confirm::new("Initialize git repository?").prompt();
-        options.init_git = init_git.unwrap();
+        let init_git = inquire::Confirm::new("Initialize git repository?").prompt()?;
+        options.init_git = init_git;
 
-        let web_server = inquire::Select::new("Select web server:", WebServer::variants()).prompt();
-        options.web_server = WebServer::from_str(web_server.unwrap()).unwrap();
+        let web_server =
+            inquire::Select::new("Select web server:", WebServer::variants()).prompt()?;
+        options.web_server = WebServer::from_str(web_server).unwrap();
 
         let websocket_server = inquire::Select::new(
             "Select websocket server:",
             WebsocketServer::variants(&options.web_server),
         )
-        .prompt();
-        options.websocket_server = WebsocketServer::from_str(websocket_server.unwrap());
+        .prompt()?;
+        options.websocket_server = WebsocketServer::from_str(websocket_server);
 
-        let database = inquire::Select::new("Select database:", Database::variants()).prompt();
-        options.database = Database::from_str(database.unwrap());
+        let database = inquire::Select::new("Select database:", Database::variants()).prompt()?;
+        options.database = Database::from_str(database);
 
-        return options;
+        Ok(options)
     }
 }
 

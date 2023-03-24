@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use cargo_fnstack::ProjectOptions;
 
 pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
-    let options = ProjectOptions::prompt();
+    let options = ProjectOptions::prompt()?;
 
     println!("Creating project dir...");
     std::fs::create_dir(&options.path)?;

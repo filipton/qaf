@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 use std::{path::PathBuf, process::Command};
 use which::which;
 
@@ -24,36 +24,30 @@ pub fn clone_templates(git_path: &PathBuf, home_path: &String) -> anyhow::Result
     Ok(())
 }
 
-pub fn update_templates(templates_path: &PathBuf) {
+pub fn update_templates(templates_path: &PathBuf) -> Result<()> {
     let sure = inquire::Confirm::new(
         "Are you sure? (It will delete all local changes on ~/.fnstack folder)",
     )
-    .prompt();
+    .prompt()?;
 
-    if !sure.unwrap() {
-        return;
+    if !sure {
+        return Err(anyhow!("User selected no"));
     }
 
     println!("Updating templates folder...");
 
     let git_path = which("git").expect("Git is not installed!");
-    let cmd = Command::new(&git_path)
+    Command::new(&git_path)
         .current_dir(&templates_path)
         .arg("reset")
         .arg("--hard")
-        .output();
-    if cmd.is_err() {
-        println!("\x1b[31mError: {}\x1b[0m", cmd.unwrap_err());
-        return;
-    }
+        .output()?;
 
-    let cmd = Command::new(&git_path)
+    Command::new(&git_path)
         .current_dir(&templates_path)
         .arg("pull")
         .arg("--force")
-        .output();
-    if cmd.is_err() {
-        println!("\x1b[31mError: {}\x1b[0m", cmd.unwrap_err());
-        return;
-    }
+        .output()?;
+
+    Ok(())
 }

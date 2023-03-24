@@ -1,11 +1,12 @@
+use anyhow::Result;
+use clap::{command, Parser, Subcommand};
+use creator::create_app;
 use std::path::PathBuf;
+use template_utils::{clone_templates, update_templates};
+use which::which;
 
 mod creator;
 mod template_utils;
-use clap::{command, Parser, Subcommand};
-use creator::create_app;
-use template_utils::{clone_templates, update_templates};
-use which::which;
 
 pub const TEMPLATES_REPO: &str = "https://github.com/filipton/fn-stack-templates";
 
@@ -40,7 +41,11 @@ fn main() {
     }
 
     if args.command.is_some() {
-        match_commands(&args, &templates_path);
+        let res = match_commands(&args, &templates_path);
+        if res.is_err() {
+            println!("\x1b[31mError: {}\x1b[0m", res.unwrap_err());
+        }
+
         return;
     }
 
@@ -50,10 +55,12 @@ fn main() {
     }
 }
 
-fn match_commands(args: &CliArgs, templates_path: &PathBuf) {
+fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
     if let Some(cmd) = args.command.clone() {
         match cmd {
-            Commands::Update => update_templates(templates_path),
+            Commands::Update => update_templates(templates_path)?,
         }
     }
+
+    Ok(())
 }
