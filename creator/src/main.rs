@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use clap::{command, Parser, Subcommand};
 use creator::create_app;
+use crossterm::event::{Event, KeyCode, KeyModifiers};
 use std::path::PathBuf;
 use template_utils::{clone_templates, update_templates};
 use utils::AlternateScreenCleanup;
@@ -72,7 +73,28 @@ fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
 
 fn dev() -> Result<()> {
     let _clean_up = AlternateScreenCleanup::new()?;
-    std::thread::sleep(std::time::Duration::from_secs(10));
+
+    // start devs here:
+
+    let mut dev_id = 1;
+    loop {
+        let event = crossterm::event::read()?;
+        if let Event::Key(event) = event {
+            if event.code == KeyCode::Esc
+                || (event.modifiers == KeyModifiers::CONTROL && event.code == KeyCode::Char('c'))
+            {
+                break;
+            }
+
+            dev_id = match event.code {
+                KeyCode::Char('1') => 1,
+                KeyCode::Char('2') => 2,
+                KeyCode::Char('3') => 3,
+                _ => dev_id,
+            };
+            println!("DEVID: {}\r", dev_id);
+        }
+    }
 
     Ok(())
 }
