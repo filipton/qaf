@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::{command, Parser, Subcommand};
 use creator::create_app;
 use std::path::PathBuf;
@@ -32,8 +32,15 @@ fn main() {
 
     let args = CliArgs::parse_from(args);
 
-    let git_path = which("git").expect("Git is not installed!");
-    let home_path = std::env::var("HOME").expect("HOME env var not set!");
+    let res = process(args);
+    if res.is_err() {
+        println!("\x1b[31mError: {}\x1b[0m", res.unwrap_err());
+    }
+}
+
+fn process(args: CliArgs) -> Result<()> {
+    let git_path = which("git").map_err(|_| anyhow!("Git is not installed!"))?;
+    let home_path = std::env::var("HOME").map_err(|_| anyhow!("HOME env var not set!"))?;
     let templates_path = PathBuf::from(format!("{}/.fnstack", home_path));
 
     if !templates_path.exists() {
@@ -41,18 +48,12 @@ fn main() {
     }
 
     if args.command.is_some() {
-        let res = match_commands(&args, &templates_path);
-        if res.is_err() {
-            println!("\x1b[31mError: {}\x1b[0m", res.unwrap_err());
-        }
-
-        return;
+        match_commands(&args, &templates_path)?;
+        return Ok(());
     }
 
-    let res = create_app(git_path, templates_path);
-    if res.is_err() {
-        println!("\x1b[31mError: {}\x1b[0m", res.unwrap_err());
-    }
+    create_app(git_path, templates_path)?;
+    Ok(())
 }
 
 fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
