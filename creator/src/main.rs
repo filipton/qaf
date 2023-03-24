@@ -5,19 +5,34 @@ use cargo_fnstack::ProjectOptions;
 use which::which;
 
 fn main() {
-    let res = create_app();
+    let git_path = which("git").expect("Git is not installed!");
+    let home_path = std::env::var("HOME").expect("HOME env var not set!");
+    let templates_path = PathBuf::from(format!("{}/.fnstack", home_path));
+
+    if !templates_path.exists() {
+        println!(
+            "Cloning templates... (NOTE: you can update them later by running \"cargo fnstack update\")"
+        );
+
+        let cmd = Command::new(&git_path)
+            .current_dir(&home_path)
+            .arg("clone")
+            .arg("https://github.com/filipton/fn-stack-templates")
+            .arg(".fnstack")
+            .output();
+        if cmd.is_err() {
+            println!("\x1b[31mError: {}\x1b[0m", cmd.unwrap_err());
+            return;
+        }
+    }
+
+    let res = create_app(git_path, templates_path);
     if res.is_err() {
         println!("\x1b[31mError: {}\x1b[0m", res.unwrap_err());
     }
 }
 
-fn create_app() -> Result<()> {
-    let git_path = which("git").expect("Git is not installed!");
-
-    // TODO: change this path later
-    let home_path = std::env::var("HOME").expect("HOME env var not set!");
-    let templates_path =
-        PathBuf::from(format!("{}/Documents/Github/fn-stack/templates", home_path));
+fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     let options = ProjectOptions::prompt();
 
     println!("Creating project dir...");
