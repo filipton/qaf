@@ -2,7 +2,11 @@ use anyhow::{anyhow, Result};
 use clap::{command, Parser, Subcommand};
 use creator::create_app;
 use crossterm::event::{Event, KeyCode, KeyModifiers};
-use std::path::PathBuf;
+use std::{
+    io::{BufRead, BufWriter, Write},
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 use template_utils::{clone_templates, update_templates};
 use utils::AlternateScreenCleanup;
 use which::which;
@@ -75,6 +79,22 @@ fn dev() -> Result<()> {
     let _clean_up = AlternateScreenCleanup::new()?;
 
     // start devs here:
+    let mut dev_one = Command::new("cargo")
+        .arg("watch")
+        .arg("-x")
+        .arg("run")
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Failed to start dev 1");
+
+    dev_one.stdout.take().map(|stdout| {
+        std::thread::spawn(move || {
+            let stdout = std::io::BufReader::new(stdout);
+            for line in stdout.lines() {
+                //println!("DEV 1: {}\r", line.unwrap());
+            }
+        });
+    });
 
     let mut dev_id = 1;
     loop {
