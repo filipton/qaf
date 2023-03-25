@@ -42,7 +42,7 @@ impl ProjectOptions {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub enum WebServer {
     #[default]
     Actix,
@@ -64,7 +64,7 @@ impl<'a> WebServer {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub enum WebsocketServer {
     #[default]
     Actix,
@@ -92,7 +92,7 @@ impl<'a> WebsocketServer {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub enum Database {
     #[default]
     Postgres,

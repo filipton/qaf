@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use cargo_fnstack::ProjectOptions;
+use cargo_fnstack::{Database, ProjectOptions, WebsocketServer};
 
 pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     let options = ProjectOptions::prompt()?;
@@ -100,8 +100,21 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
         if line_trimmed.starts_with("#[[IF ") || line_trimmed.starts_with("//[[IF ") {
             inside_if = true;
 
-            // should check if statement
-            if_statement = true;
+            // 0 - #[[IF|//[[IF    1 - DATABASE|WEBSOCKETS|etc...    2 - value
+            let line_trimmed = line_trimmed.replace("]]", "");
+            let splitted_args: Vec<&str> = line_trimmed.split(" ").collect();
+            if splitted_args.len() != 3 {
+                if_statement = false;
+                continue;
+            }
+
+            if_statement = match splitted_args[1] {
+                "DATABASE" => Database::from_str(splitted_args[2]) == options.database,
+                "WEBSOCKETS" => {
+                    WebsocketServer::from_str(splitted_args[2]) == options.websocket_server
+                }
+                _ => false,
+            };
 
             continue;
         }
