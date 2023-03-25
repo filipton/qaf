@@ -12,4 +12,5 @@ clap_derive = "4.1.12"
 crossterm = "0.26.1"
 inquire = "0.6.0"
 os_pipe = "1.1.3"
+tokio = { version = "1.26.0", features = ["full"] }
 which = "4.4.0"

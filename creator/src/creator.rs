@@ -72,7 +72,7 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
         } else if metadata.is_file() {
             if file_name.starts_with("[GEN]") {
                 let file_str = std::fs::read_to_string(entry.path())?;
-                let file_str = inject_project_options(&file_str, options);
+                let file_str = generate_file(&file_str, options);
 
                 std::fs::write(path_to.join(file_name.replace("[GEN]", "")), file_str)?;
             } else {
@@ -84,8 +84,35 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
     Ok(())
 }
 
-fn inject_project_options(string: &str, options: &ProjectOptions) -> String {
-    string
-        .replace("[[PROJECT_NAME]]", &options.name)
+fn generate_file(string: &str, options: &ProjectOptions) -> String {
+    let mut out = String::new();
+    let mut inside_if = false;
+    let mut if_statement = false;
+
+    for line in string.lines() {
+        let line_trimmed = line.trim();
+
+        if line_trimmed.starts_with("#[[ENDIF]]") || line_trimmed.starts_with("//[[ENDIF]]") {
+            inside_if = false;
+            continue;
+        }
+
+        if line_trimmed.starts_with("#[[IF ") || line_trimmed.starts_with("//[[IF ") {
+            inside_if = true;
+
+            // should check if statement
+            if_statement = true;
+
+            continue;
+        }
+
+        if inside_if && !if_statement {
+            continue;
+        }
+
+        out.push_str(&format!("{}\n", line));
+    }
+
+    out.replace("[[PROJECT_NAME]]", &options.name)
         .replace("[[RUST_PROJECT_NAME]]", &options.name.replace("-", "_"))
 }
