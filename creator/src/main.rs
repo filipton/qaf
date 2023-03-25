@@ -82,16 +82,19 @@ fn dev() -> Result<()> {
         .arg("watch")
         .arg("-x")
         .arg("run")
-        .spawn()
+        .stdout(Stdio::piped())
+        .output()
         .expect("Failed to start backend!");
 
+    /*
     loop {
         if let Some(status) = backend_watcher.try_wait()? {
             println!("Backend exited with status: {}", status);
             break;
         }
     }
+    */
 
-    backend_watcher.kill()?;
+    //backend_watcher.kill()?;
     Ok(())
 }
