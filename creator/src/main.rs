@@ -76,45 +76,22 @@ fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
 }
 
 fn dev() -> Result<()> {
-    let _clean_up = AlternateScreenCleanup::new()?;
+    // i should have some configuration file with file paths for project (backend, frontend)
 
-    // start devs here:
-    let mut dev_one = Command::new("cargo")
+    let mut backend_watcher = Command::new("cargo")
         .arg("watch")
         .arg("-x")
         .arg("run")
-        .stdout(Stdio::piped())
         .spawn()
-        .expect("Failed to start dev 1");
+        .expect("Failed to start backend!");
 
-    dev_one.stdout.take().map(|stdout| {
-        std::thread::spawn(move || {
-            let stdout = std::io::BufReader::new(stdout);
-            for line in stdout.lines() {
-                //println!("DEV 1: {}\r", line.unwrap());
-            }
-        });
-    });
-
-    let mut dev_id = 1;
     loop {
-        let event = crossterm::event::read()?;
-        if let Event::Key(event) = event {
-            if event.code == KeyCode::Esc
-                || (event.modifiers == KeyModifiers::CONTROL && event.code == KeyCode::Char('c'))
-            {
-                break;
-            }
-
-            dev_id = match event.code {
-                KeyCode::Char('1') => 1,
-                KeyCode::Char('2') => 2,
-                KeyCode::Char('3') => 3,
-                _ => dev_id,
-            };
-            println!("DEVID: {}\r", dev_id);
+        if let Some(status) = backend_watcher.try_wait()? {
+            println!("Backend exited with status: {}", status);
+            break;
         }
     }
 
+    backend_watcher.kill()?;
     Ok(())
 }
