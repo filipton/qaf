@@ -63,21 +63,17 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
 
         let metadata = entry.metadata()?;
         if metadata.is_dir() {
-            if file_name == ".git" {
+            if file_name == ".git" || file_name == "target" {
                 continue;
             }
 
             std::fs::create_dir(&_path_to)?;
             walkdir_copy(&entry.path(), &_path_to, options)?;
         } else if metadata.is_file() {
-            if file_name.starts_with("[GEN]") {
-                let file_str = std::fs::read_to_string(entry.path())?;
-                let file_str = generate_file(&file_str, options);
+            let file_str = std::fs::read_to_string(entry.path())?;
+            let file_str = generate_file(&file_str, options);
 
-                std::fs::write(path_to.join(file_name.replace("[GEN]", "")), file_str)?;
-            } else {
-                std::fs::copy(entry.path(), _path_to)?;
-            }
+            std::fs::write(path_to.join(file_name), file_str)?;
         }
     }
 
@@ -86,29 +82,25 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
 
 fn generate_file(string: &str, options: &ProjectOptions) -> String {
     let mut out = String::new();
-    let mut inside_if = false;
-    let mut if_statement = false;
+    let mut ifs = Vec::new();
 
     for line in string.lines() {
         let line_trimmed = line.trim();
 
-        if line_trimmed.starts_with("#[[ENDIF]]") || line_trimmed.starts_with("//[[ENDIF]]") {
-            inside_if = false;
+        if line_trimmed.starts_with("#[[ENDIF]]") || line_trimmed.starts_with("[[ENDIF]]*/") {
+            ifs.pop();
             continue;
         }
 
-        if line_trimmed.starts_with("#[[IF ") || line_trimmed.starts_with("//[[IF ") {
-            inside_if = true;
-
+        if line_trimmed.starts_with("#[[IF ") || line_trimmed.starts_with("/*[[IF ") {
             // 0 - #[[IF|//[[IF    1 - DATABASE|WEBSOCKETS|etc...    2 - value
             let line_trimmed = line_trimmed.replace("]]", "");
             let splitted_args: Vec<&str> = line_trimmed.split(" ").collect();
             if splitted_args.len() != 3 {
-                if_statement = false;
-                continue;
+                panic!("Invalid IF statement!");
             }
 
-            if_statement = match splitted_args[1] {
+            let if_statement = match splitted_args[1] {
                 "DATABASE" => Database::from_str(splitted_args[2]) == options.database,
                 "WEBSOCKETS" => {
                     WebsocketServer::from_str(splitted_args[2]) == options.websocket_server
@@ -116,16 +108,26 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
                 _ => false,
             };
 
+            // If the last IF statement was false, then this one is also false
+            ifs.push(if_statement && ifs.last() != Some(&false));
+
             continue;
         }
 
-        if inside_if && !if_statement {
+        if ifs.len() > 0 && ifs.last() == Some(&false) {
             continue;
         }
 
         out.push_str(&format!("{}\n", line));
     }
 
-    out.replace("[[PROJECT_NAME]]", &options.name)
-        .replace("[[RUST_PROJECT_NAME]]", &options.name.replace("-", "_"))
+    if ifs.len() > 0 {
+        panic!("Unclosed IF statement!");
+    }
+
+    out.replace(
+        "rust_project_name_t",
+        &options.name.replace("-", "_").to_lowercase(),
+    )
+    .replace("project_name_t", &options.name)
 }
