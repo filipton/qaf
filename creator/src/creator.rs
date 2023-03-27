@@ -14,17 +14,23 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
 
     if options.init_git {
         println!("Initalizing git...");
-        init_git(git_path, &options)?;
+
+        if options.independent_git_repos {
+            init_git(&git_path, &options.path.join("backend"))?;
+            init_git(&git_path, &options.path.join("frontend"))?;
+        } else {
+            init_git(&git_path, &options.path)?;
+        }
     }
 
     println!("DONE!!!");
     Ok(())
 }
 
-fn init_git(git_path: PathBuf, options: &ProjectOptions) -> Result<()> {
+fn init_git(git_path: &PathBuf, project_path: &PathBuf) -> Result<()> {
     // git init
-    let cmd = Command::new(&git_path)
-        .current_dir(&options.name)
+    let cmd = Command::new(git_path)
+        .current_dir(project_path)
         .arg("init")
         .output()?;
     if !cmd.status.success() {
@@ -32,8 +38,8 @@ fn init_git(git_path: PathBuf, options: &ProjectOptions) -> Result<()> {
     }
 
     // git add .
-    let cmd = Command::new(&git_path)
-        .current_dir(&options.name)
+    let cmd = Command::new(git_path)
+        .current_dir(project_path)
         .arg("add")
         .arg(".")
         .output()?;
@@ -42,8 +48,8 @@ fn init_git(git_path: PathBuf, options: &ProjectOptions) -> Result<()> {
     }
 
     // git commit
-    let cmd = Command::new(&git_path)
-        .current_dir(&options.name)
+    let cmd = Command::new(git_path)
+        .current_dir(project_path)
         .arg("commit")
         .arg("-am")
         .arg("\"Initial commit\"")
