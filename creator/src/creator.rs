@@ -12,16 +12,8 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     println!("Copying files...");
     walkdir_copy(&templates_path, &options.path, &options)?;
 
-    if options.init_git {
-        println!("Initalizing git...");
-
-        if options.independent_git_repos {
-            init_git(&git_path, &options.path.join("backend"))?;
-            init_git(&git_path, &options.path.join("frontend"))?;
-        } else {
-            init_git(&git_path, &options.path)?;
-        }
-    }
+    println!("Initalizing git...");
+    init_git(&git_path, &options.path)?;
 
     println!("DONE!!!");
     Ok(())

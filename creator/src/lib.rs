@@ -7,7 +7,6 @@ pub struct ProjectOptions {
     pub path: PathBuf,
 
     pub init_git: bool,
-    pub independent_git_repos: bool,
 
     pub web_server: WebServer,
     pub websocket_server: Option<WebsocketServer>,
@@ -26,10 +25,6 @@ impl ProjectOptions {
 
         let init_git = inquire::Confirm::new("Initialize git repository?").prompt()?;
         options.init_git = init_git;
-
-        let independent_git_repos =
-            inquire::Confirm::new("Use independent git repositories?").prompt()?;
-        options.independent_git_repos = independent_git_repos;
 
         let web_server =
             inquire::Select::new("Select web server:", WebServer::variants()).prompt()?;
