@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use cargo_fnstack::{Database, ProjectOptions, WebsocketServer};
+use cargo_fnstack::{Database, ProjectOptions, WebServer, WebsocketServer};
 
 pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     let options = ProjectOptions::prompt()?;
@@ -71,6 +71,10 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
             let file_str = std::fs::read_to_string(entry.path())?;
             let file_str = generate_file(&file_str, options);
 
+            if file_str == "" {
+                continue;
+            }
+
             std::fs::write(path_to.join(file_name), file_str)?;
         }
     }
@@ -85,12 +89,18 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
     for line in string.lines() {
         let line_trimmed = line.trim();
 
-        if line_trimmed.starts_with("#[[ENDIF]]") || line_trimmed.starts_with("[[ENDIF]]*/") {
+        if line_trimmed.starts_with("#[[ENDIF]]")
+            || line_trimmed.starts_with("[[ENDIF]]*/")
+            || line_trimmed.starts_with("//[[ENDIF]]")
+        {
             ifs.pop();
             continue;
         }
 
-        if line_trimmed.starts_with("#[[IF ") || line_trimmed.starts_with("/*[[IF ") {
+        if line_trimmed.starts_with("#[[IF ")
+            || line_trimmed.starts_with("/*[[IF ")
+            || line_trimmed.starts_with("//[[IF ")
+        {
             // 0 - #[[IF|//[[IF    1 - DATABASE|WEBSOCKETS|etc...    2 - value
             let line_trimmed = line_trimmed.replace("]]", "");
             let splitted_args: Vec<&str> = line_trimmed.split(" ").collect();
@@ -100,8 +110,12 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
 
             let if_statement = match splitted_args[1] {
                 "DATABASE" => Database::from_str(splitted_args[2]) == options.database,
-                "WEBSOCKETS" => {
+                "WEBSOCKET" => {
                     WebsocketServer::from_str(splitted_args[2]) == options.websocket_server
+                }
+                "WEBSERVER" => {
+                    WebServer::from_str(splitted_args[2]).unwrap_or(WebServer::Actix)
+                        == options.web_server
                 }
                 _ => false,
             };
