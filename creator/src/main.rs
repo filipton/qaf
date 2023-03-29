@@ -6,6 +6,7 @@ use template_utils::{clone_templates, update_templates};
 use tokio::process::Command;
 use which::which;
 
+mod config;
 mod creator;
 mod template_utils;
 mod utils;

@@ -3,11 +3,17 @@ use std::{path::PathBuf, process::Command};
 use anyhow::{anyhow, Result};
 use cargo_fnstack::{Database, ProjectOptions, WebServer, WebsocketServer};
 
+use crate::config::BuildrsConfig;
+
 pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     let options = ProjectOptions::prompt()?;
 
     println!("Creating project dir...");
     std::fs::create_dir(&options.path)?;
+
+    println!("Creating buildrs config...");
+    let config = BuildrsConfig::new();
+    BuildrsConfig::to_file(config, options.path.join("fnstack.json"))?;
 
     println!("Copying files...");
     walkdir_copy(&templates_path, &options.path, &options)?;
