@@ -1,9 +1,8 @@
 use anyhow::{anyhow, Result};
 use clap::{command, Parser, Subcommand};
 use creator::create_app;
-use std::path::PathBuf;
+use std::{io::Write, os::unix::process::CommandExt, path::PathBuf, process::Command};
 use template_utils::{clone_templates, update_templates};
-use tokio::process::Command;
 use which::which;
 
 mod config;
@@ -86,21 +85,56 @@ async fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> 
 }
 
 async fn dev() -> Result<()> {
-    // i should have some configuration file with file paths for project (backend, frontend)
-    let mut backend_watcher = Command::new("cargo")
-        .arg("watch")
-        .arg("-x")
-        .arg("run")
-        .spawn()
-        .expect("Failed to start backend!");
+    //let config_path = PathBuf::from("fnstack.json");
+    let cargo_toml = PathBuf::from("Cargo.toml");
 
-    loop {
-        if let Some(status) = backend_watcher.try_wait()? {
-            println!("Backend exited with status: {}", status);
-            break;
-        }
-    }
+    //let config = config::BuildrsConfig::from_file(config_path)?;
+    let cargo_toml = std::fs::read_to_string(cargo_toml)?;
 
-    backend_watcher.kill().await?;
+    let project_name = cargo_toml
+        .lines()
+        .find(|line| line.starts_with("name = "))
+        .unwrap()
+        .split(" = ")
+        .nth(1)
+        .unwrap()
+        .replace("\"", "");
+
+    _ = Command::new("tmux")
+        .arg("-L")
+        .arg("fnstack")
+        .arg("kill-server")
+        .output();
+
+    _ = Command::new("bash")
+        .arg("-c")
+        .arg(format!("kill -9 $(pidof {})", project_name))
+        .output();
+
+    _ = Command::new("tmux")
+        .arg("-L")
+        .arg("fnstack")
+        .arg("-f")
+        .arg("tmux.conf")
+        .arg("new-session")
+        .arg("-c")
+        .arg("./")
+        .arg("-d")
+        .arg("cargo watch -x run")
+        .output();
+
+    print!("To exit from tmux use C^f + x. Click enter to continue... ");
+    std::io::stdout().flush()?;
+
+    let mut string = String::new();
+    std::io::stdin().read_line(&mut string)?;
+    drop(string);
+
+    _ = Command::new("tmux")
+        .arg("-L")
+        .arg("fnstack")
+        .arg("attach")
+        .exec();
+
     Ok(())
 }
