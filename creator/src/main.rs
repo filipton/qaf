@@ -3,14 +3,18 @@ use clap::Parser;
 use cli::{CliArgs, Commands, DockerCommands};
 use creator::create_app;
 use std::path::PathBuf;
+use utils::{creator, dev, docker, template};
 use which::which;
 
 mod cli;
 mod config;
-mod creator;
-mod dev;
-mod docker;
-mod template;
+
+pub mod utils {
+    pub mod creator;
+    pub mod dev;
+    pub mod docker;
+    pub mod template;
+}
 
 pub const TEMPLATES_REPO: &str = "https://github.com/filipton/fn-stack-templates";
 
