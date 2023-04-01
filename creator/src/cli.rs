@@ -25,5 +25,6 @@ pub enum Commands {
 #[derive(Subcommand, Debug, Clone)]
 pub enum DockerCommands {
     Build,
+    BuildCached,
     Run,
 }

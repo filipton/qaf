@@ -57,6 +57,7 @@ async fn process_cli_args(args: &CliArgs, templates_path: &PathBuf) -> Result<()
             Commands::Kill => dev::kill().await?,
             Commands::Docker { command } => match command {
                 DockerCommands::Build => docker::build().await?,
+                DockerCommands::BuildCached => docker::build_cached().await?,
                 DockerCommands::Run => docker::run().await?,
             },
         }
