@@ -1,45 +1,18 @@
 use anyhow::{anyhow, Result};
-use clap::{command, Parser, Subcommand};
+use clap::Parser;
+use cli::{CliArgs, Commands, DockerCommands};
 use creator::create_app;
-use std::{io::Write, os::unix::process::CommandExt, path::PathBuf, process::Command};
-use template_utils::{clone_templates, update_templates};
+use std::path::PathBuf;
 use which::which;
 
+mod cli;
 mod config;
 mod creator;
+mod dev;
 mod docker;
-mod template_utils;
-mod utils;
+mod template;
 
 pub const TEMPLATES_REPO: &str = "https://github.com/filipton/fn-stack-templates";
-
-#[derive(Parser, Debug)]
-#[command(version)]
-#[command(propagate_version = true)]
-struct CliArgs {
-    #[command(subcommand)]
-    command: Option<Commands>,
-
-    #[arg(short, long)]
-    templates_path: Option<String>,
-}
-
-#[derive(Subcommand, Debug, Clone)]
-enum Commands {
-    Docker {
-        #[command(subcommand)]
-        command: DockerCommands,
-    },
-    Dev,
-    Update,
-    Kill,
-}
-
-#[derive(Subcommand, Debug, Clone)]
-enum DockerCommands {
-    Build,
-    Run,
-}
 
 #[tokio::main]
 async fn main() {
@@ -61,25 +34,10 @@ async fn process(args: CliArgs) -> Result<()> {
     let git_path = which("git").map_err(|_| anyhow!("Git is not installed!"))?;
     _ = which("tmux").map_err(|_| anyhow!("Tmux is not installed!"))?;
 
-    let home_path = std::env::var("HOME").map_err(|_| anyhow!("HOME env var not set!"))?;
-    let mut templates_path = PathBuf::from(format!("{}/.fnstack", home_path));
-
-    if args.templates_path.is_some() {
-        let path_str = args
-            .templates_path
-            .clone()
-            .unwrap()
-            .replace("~", &home_path);
-
-        templates_path = PathBuf::from(path_str);
-    }
-
-    if !templates_path.exists() {
-        clone_templates(&git_path, &home_path).expect("");
-    }
+    let templates_path = template::init(&args, &git_path)?;
 
     if args.command.is_some() {
-        match_commands(&args, &templates_path).await?;
+        process_cli_args(&args, &templates_path).await?;
         return Ok(());
     }
 
@@ -87,99 +45,18 @@ async fn process(args: CliArgs) -> Result<()> {
     Ok(())
 }
 
-async fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
+async fn process_cli_args(args: &CliArgs, templates_path: &PathBuf) -> Result<()> {
     if let Some(cmd) = args.command.clone() {
         match cmd {
-            Commands::Update => update_templates(templates_path)?,
-            Commands::Dev => dev().await?,
-            Commands::Kill => kill().await?,
+            Commands::Update => template::update(templates_path)?,
+            Commands::Dev => dev::dev().await?,
+            Commands::Kill => dev::kill().await?,
             Commands::Docker { command } => match command {
                 DockerCommands::Build => docker::build().await?,
                 DockerCommands::Run => docker::run().await?,
             },
         }
     }
-
-    Ok(())
-}
-
-async fn kill() -> Result<()> {
-    let cargo_toml = PathBuf::from("Cargo.toml");
-    let cargo_toml = std::fs::read_to_string(cargo_toml)?;
-
-    let project_name = cargo_toml
-        .lines()
-        .find(|line| line.starts_with("name = "))
-        .unwrap()
-        .split(" = ")
-        .nth(1)
-        .unwrap()
-        .replace("\"", "");
-
-    _ = Command::new("tmux")
-        .arg("-L")
-        .arg("fnstack")
-        .arg("kill-server")
-        .output();
-
-    _ = Command::new("bash")
-        .arg("-c")
-        .arg(format!("kill -9 $(pidof {})", project_name))
-        .output();
-
-    Ok(())
-}
-
-async fn dev() -> Result<()> {
-    let config_path = PathBuf::from("fnstack.json");
-    let config = config::BuildrsConfig::from_file(config_path)?;
-
-    kill().await?;
-    _ = Command::new("tmux")
-        .arg("-L")
-        .arg("fnstack")
-        .arg("-f")
-        .arg("tmux.conf")
-        .arg("new-session")
-        .arg("-c")
-        .arg("./")
-        .arg("-d")
-        .arg("cargo watch -x run")
-        .output();
-
-    if config.tmux_single_window {
-        _ = Command::new("tmux")
-            .arg("-L")
-            .arg("fnstack")
-            .arg("split-window")
-            .arg("-h")
-            .arg("-c")
-            .arg("./")
-            .arg("btop")
-            .output();
-    } else {
-        _ = Command::new("tmux")
-            .arg("-L")
-            .arg("fnstack")
-            .arg("new-window")
-            .arg("-c")
-            .arg("./")
-            .arg("btop")
-            .output();
-    }
-
-    print!("To detach from tmux use C^f + d. Click enter to continue... ");
-    std::io::stdout().flush()?;
-
-    let mut string = String::new();
-    std::io::stdin().read_line(&mut string)?;
-    drop(string);
-
-    _ = Command::new("tmux")
-        .arg("-L")
-        .arg("fnstack")
-        .arg("attach")
-        .exec();
 
     Ok(())
 }

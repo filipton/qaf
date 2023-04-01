@@ -1,4 +1,4 @@
-use std::{process::Command, os::unix::process::CommandExt};
+use std::{os::unix::process::CommandExt, path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
 use which::which;
@@ -28,8 +28,15 @@ pub async fn run() -> Result<()> {
     let dir = std::env::current_dir()?;
     let image_name = dir.file_name().unwrap().to_str().unwrap();
 
+    println!("Running image: {}...", image_name);
+    println!("Press Ctrl+C to stop the server.\n\n");
+
     _ = Command::new("docker")
         .arg("run")
+        .arg("-p")
+        .arg("8080:8080")
+        .arg("-e")
+        .arg("BIND_ADDRESS=0.0.0.0:8080")
         .arg("--rm")
         .arg("-it")
         .arg(image_name)
