@@ -116,9 +116,8 @@ async fn kill() -> Result<()> {
 }
 
 async fn dev() -> Result<()> {
-    //let config_path = PathBuf::from("fnstack.json");
-
-    //let config = config::BuildrsConfig::from_file(config_path)?;
+    let config_path = PathBuf::from("fnstack.json");
+    let config = config::BuildrsConfig::from_file(config_path)?;
 
     kill().await?;
     _ = Command::new("tmux")
@@ -133,7 +132,28 @@ async fn dev() -> Result<()> {
         .arg("cargo watch -x run")
         .output();
 
-    print!("To exit from tmux use C^f + x. Click enter to continue... ");
+    if config.tmux_single_window {
+        _ = Command::new("tmux")
+            .arg("-L")
+            .arg("fnstack")
+            .arg("split-window")
+            .arg("-h")
+            .arg("-c")
+            .arg("./")
+            .arg("btop")
+            .output();
+    } else {
+        _ = Command::new("tmux")
+            .arg("-L")
+            .arg("fnstack")
+            .arg("new-window")
+            .arg("-c")
+            .arg("./")
+            .arg("btop")
+            .output();
+    }
+
+    print!("To detach from tmux use C^f + d. Click enter to continue... ");
     std::io::stdout().flush()?;
 
     let mut string = String::new();

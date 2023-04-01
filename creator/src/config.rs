@@ -6,6 +6,7 @@ use std::path::PathBuf;
 pub struct BuildrsConfig {
     pub filenames_as_scopes: bool,
     pub disable_scopes: bool,
+    pub tmux_single_window: bool,
 }
 
 impl Default for BuildrsConfig {
@@ -13,6 +14,7 @@ impl Default for BuildrsConfig {
         Self {
             filenames_as_scopes: false,
             disable_scopes: false,
+            tmux_single_window: true,
         }
     }
 }
@@ -36,4 +38,3 @@ impl BuildrsConfig {
         Ok(())
     }
 }
-
