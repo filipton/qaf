@@ -11,6 +11,8 @@ pub struct ProjectOptions {
     pub web_server: WebServer,
     pub websocket_server: Option<WebsocketServer>,
     pub database: Option<Database>,
+
+    pub docker: bool,
 }
 
 impl ProjectOptions {
@@ -39,6 +41,9 @@ impl ProjectOptions {
 
         let database = inquire::Select::new("Select database:", Database::variants()).prompt()?;
         options.database = Database::from_str(database);
+
+        let use_docker = inquire::Confirm::new("Use docker?").prompt()?;
+        options.docker = use_docker;
 
         Ok(options)
     }

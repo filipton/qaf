@@ -1,4 +1,4 @@
-use std::{os::unix::process::CommandExt, path::PathBuf, process::Command};
+use std::{os::unix::process::CommandExt, process::Command};
 
 use anyhow::{anyhow, Result};
 use which::which;
@@ -17,7 +17,7 @@ pub async fn build() -> Result<()> {
         .arg("-f")
         .arg(dockerfile)
         .arg(dir)
-        .spawn()?;
+        .exec();
 
     Ok(())
 }

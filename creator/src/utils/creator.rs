@@ -123,6 +123,7 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
                     WebServer::from_str(splitted_args[2]).unwrap_or(WebServer::Actix)
                         == options.web_server
                 }
+                "DOCKER" => splitted_args[2] == "true" && options.docker,
                 _ => false,
             };
 
