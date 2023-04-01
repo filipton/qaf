@@ -7,6 +7,7 @@ use which::which;
 
 mod config;
 mod creator;
+mod docker;
 mod template_utils;
 mod utils;
 
@@ -25,9 +26,19 @@ struct CliArgs {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
-    Update,
+    Docker {
+        #[command(subcommand)]
+        command: DockerCommands,
+    },
     Dev,
+    Update,
     Kill,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum DockerCommands {
+    Build,
+    Run,
 }
 
 #[tokio::main]
@@ -82,6 +93,10 @@ async fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> 
             Commands::Update => update_templates(templates_path)?,
             Commands::Dev => dev().await?,
             Commands::Kill => kill().await?,
+            Commands::Docker { command } => match command {
+                DockerCommands::Build => docker::build().await?,
+                DockerCommands::Run => docker::run().await?,
+            },
         }
     }
 
