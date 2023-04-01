@@ -27,6 +27,7 @@ struct CliArgs {
 enum Commands {
     Update,
     Dev,
+    Kill,
 }
 
 #[tokio::main]
@@ -47,6 +48,8 @@ async fn main() {
 
 async fn process(args: CliArgs) -> Result<()> {
     let git_path = which("git").map_err(|_| anyhow!("Git is not installed!"))?;
+    _ = which("tmux").map_err(|_| anyhow!("Tmux is not installed!"))?;
+
     let home_path = std::env::var("HOME").map_err(|_| anyhow!("HOME env var not set!"))?;
     let mut templates_path = PathBuf::from(format!("{}/.fnstack", home_path));
 
@@ -78,17 +81,15 @@ async fn match_commands(args: &CliArgs, templates_path: &PathBuf) -> Result<()> 
         match cmd {
             Commands::Update => update_templates(templates_path)?,
             Commands::Dev => dev().await?,
+            Commands::Kill => kill().await?,
         }
     }
 
     Ok(())
 }
 
-async fn dev() -> Result<()> {
-    //let config_path = PathBuf::from("fnstack.json");
+async fn kill() -> Result<()> {
     let cargo_toml = PathBuf::from("Cargo.toml");
-
-    //let config = config::BuildrsConfig::from_file(config_path)?;
     let cargo_toml = std::fs::read_to_string(cargo_toml)?;
 
     let project_name = cargo_toml
@@ -111,6 +112,15 @@ async fn dev() -> Result<()> {
         .arg(format!("kill -9 $(pidof {})", project_name))
         .output();
 
+    Ok(())
+}
+
+async fn dev() -> Result<()> {
+    //let config_path = PathBuf::from("fnstack.json");
+
+    //let config = config::BuildrsConfig::from_file(config_path)?;
+
+    kill().await?;
     _ = Command::new("tmux")
         .arg("-L")
         .arg("fnstack")
