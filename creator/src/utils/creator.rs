@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use cargo_fnstack::{Database, ProjectOptions, WebServer, WebsocketServer};
+use cargo_fnstack::{Component, Database, ProjectOptions, WebServer, WebsocketServer};
 
 use crate::config::BuildrsConfig;
 
@@ -62,9 +62,21 @@ fn init_git(git_path: &PathBuf, project_path: &PathBuf) -> Result<()> {
 fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions) -> Result<()> {
     for entry in path_from.read_dir()? {
         let entry = entry?;
-        let file_name = entry.file_name().into_string().unwrap();
-        let _path_to = path_to.join(&file_name);
+        let mut file_name = entry.file_name().into_string().unwrap();
 
+        if file_name.starts_with("[") && file_name.contains("]") {
+            let name_splitted = file_name.clone();
+            let name_splitted: Vec<&str> = name_splitted.splitn(2, "]").collect();
+
+            file_name = name_splitted[1].to_string();
+
+            let statement: Vec<&str> = name_splitted[0].splitn(2, " ").collect();
+            if !check_statement(&statement[0][1..], statement[1], options) {
+                continue;
+            }
+        }
+
+        let _path_to = path_to.join(&file_name);
         let metadata = entry.metadata()?;
         if metadata.is_dir() {
             if file_name == ".git" || file_name == "target" {
@@ -114,18 +126,7 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
                 panic!("Invalid IF statement!");
             }
 
-            let if_statement = match splitted_args[1] {
-                "DATABASE" => Database::from_str(splitted_args[2]) == options.database,
-                "WEBSOCKET" => {
-                    WebsocketServer::from_str(splitted_args[2]) == options.websocket_server
-                }
-                "WEBSERVER" => {
-                    WebServer::from_str(splitted_args[2]).unwrap_or(WebServer::Actix)
-                        == options.web_server
-                }
-                "DOCKER" => splitted_args[2] == "true" && options.docker,
-                _ => false,
-            };
+            let if_statement = check_statement(splitted_args[1], splitted_args[2], options);
 
             // If the last IF statement was false, then this one is also false
             ifs.push(if_statement && ifs.last() != Some(&false));
@@ -149,4 +150,19 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
         &options.name.replace("-", "_").to_lowercase(),
     )
     .replace("project_name_t", &options.name)
+}
+
+fn check_statement(key: &str, value: &str, options: &ProjectOptions) -> bool {
+    match key {
+        "DATABASE" => Database::from_str(value) == options.database,
+        "COMPONENT" => options
+            .components
+            .contains(&Component::from_str(value).expect("Wrong component name")),
+        "WEBSOCKET" => WebsocketServer::from_str(value) == options.websocket_server,
+        "WEBSERVER" => {
+            WebServer::from_str(value).expect("Wrong webserver name") == options.web_server
+        }
+        "DOCKER" => value == "true" && options.docker,
+        _ => false,
+    }
 }
