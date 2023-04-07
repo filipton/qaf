@@ -38,6 +38,10 @@ fn walkdir_modify_date(path: &PathBuf) -> Result<u128> {
 
     for entry in path.read_dir().unwrap() {
         if let Ok(entry) = entry {
+            if EXCLUDED_NAMES.contains(&entry.file_name().to_str().unwrap()) {
+                continue;
+            }
+
             if entry.file_type().unwrap().is_file() {
                 let modify_time = entry
                     .metadata()?
@@ -47,9 +51,6 @@ fn walkdir_modify_date(path: &PathBuf) -> Result<u128> {
 
                 latest_modify = latest_modify.max(modify_time);
             } else {
-                if EXCLUDED_NAMES.contains(&entry.file_name().to_str().unwrap()) {
-                    continue;
-                }
                 latest_modify = latest_modify.max(walkdir_modify_date(&entry.path())?);
             }
         }

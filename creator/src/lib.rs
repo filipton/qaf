@@ -1,13 +1,10 @@
 use anyhow::Result;
-use inquire::{list_option::ListOption, validator::Validation};
 use std::path::PathBuf;
 
 #[derive(Debug, Default)]
 pub struct ProjectOptions {
     pub name: String,
     pub path: PathBuf,
-
-    pub components: Vec<Component>,
 
     pub init_git: bool,
 
@@ -27,23 +24,6 @@ impl ProjectOptions {
             .prompt()?;
         options.name = project_name;
         options.path = PathBuf::from("./").join(&options.name);
-
-        let components_validator = |a: &[ListOption<&&str>]| {
-            if a.len() < 1 {
-                return Ok(Validation::Invalid("Select at least one component!".into()));
-            }
-
-            Ok(Validation::Valid)
-        };
-
-        let components = inquire::MultiSelect::new("Select components:", Component::variants())
-            .with_default(&[0])
-            .with_validator(components_validator)
-            .prompt()?;
-        options.components = components
-            .iter()
-            .map(|c| Component::from_str(c).unwrap())
-            .collect();
 
         let init_git = inquire::Confirm::new("Initialize git repository?").prompt()?;
         options.init_git = init_git;
@@ -66,26 +46,6 @@ impl ProjectOptions {
         options.docker = use_docker;
 
         Ok(options)
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Component {
-    Backend,
-    Frontend,
-}
-
-impl<'a> Component {
-    pub fn variants() -> Vec<&'a str> {
-        vec!["Backend", "Frontend"]
-    }
-
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "Backend" => Some(Component::Backend),
-            "Frontend" => Some(Component::Frontend),
-            _ => None,
-        }
     }
 }
 
