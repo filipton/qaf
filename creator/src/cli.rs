@@ -19,7 +19,6 @@ pub enum Commands {
     },
     Dev,
     Update,
-    Kill,
 }
 
 #[derive(Subcommand, Debug, Clone)]

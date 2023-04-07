@@ -3,23 +3,21 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct BuildrsConfig {
-    pub filenames_as_scopes: bool,
+pub struct FnstackConfig {
     pub disable_scopes: bool,
     pub tmux_single_window: bool,
 }
 
-impl Default for BuildrsConfig {
+impl Default for FnstackConfig {
     fn default() -> Self {
         Self {
-            filenames_as_scopes: false,
             disable_scopes: false,
             tmux_single_window: true,
         }
     }
 }
 
-impl BuildrsConfig {
+impl FnstackConfig {
     pub fn new() -> Self {
         Self::default()
     }
