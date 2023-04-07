@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use cargo_fnstack::{Component, Database, ProjectOptions, WebServer, WebsocketServer};
+use cargo_fnstack::{Database, ProjectOptions, WebServer, WebsocketServer};
 
 use crate::config::FnstackConfig;
 
@@ -155,9 +155,6 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
 fn check_statement(key: &str, value: &str, options: &ProjectOptions) -> bool {
     match key {
         "DATABASE" => Database::from_str(value) == options.database,
-        "COMPONENT" => options
-            .components
-            .contains(&Component::from_str(value).expect("Wrong component name")),
         "WEBSOCKET" => WebsocketServer::from_str(value) == options.websocket_server,
         "WEBSERVER" => {
             WebServer::from_str(value).expect("Wrong webserver name") == options.web_server
