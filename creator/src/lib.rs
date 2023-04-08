@@ -34,16 +34,19 @@ impl ProjectOptions {
 
         let websocket_server = inquire::Select::new(
             "Select websocket server:",
-            WebsocketServer::variants(&options.web_server),
+            WebsocketServer::variants(&options),
         )
         .prompt()?;
         options.websocket_server = WebsocketServer::from_str(websocket_server);
 
-        let database = inquire::Select::new("Select database:", Database::variants()).prompt()?;
+        let database =
+            inquire::Select::new("Select database:", Database::variants(&options)).prompt()?;
         options.database = Database::from_str(database);
 
-        let use_docker = inquire::Confirm::new("Use docker?").prompt()?;
-        options.docker = use_docker;
+        if options.web_server != WebServer::Cloudflare {
+            let use_docker = inquire::Confirm::new("Use docker?").prompt()?;
+            options.docker = use_docker;
+        }
 
         Ok(options)
     }
@@ -86,24 +89,24 @@ pub enum WebsocketServer {
     #[default]
     Actix,
     Tungstenite,
+    On,
     Off,
 }
 
 impl<'a> WebsocketServer {
-    pub fn variants(web_server: &WebServer) -> Vec<&'a str> {
-        vec!["Tungstenite", "Off"]
-        /*
-        match web_server {
-            WebServer::Actix => vec!["Actix", "Tungstenite", "Off"],
+    pub fn variants(options: &ProjectOptions) -> Vec<&'a str> {
+        match options.web_server {
+            WebServer::Actix => vec!["Tungstenite", "Off"],
             WebServer::Axum => vec!["Tungstenite", "Off"],
+            WebServer::Cloudflare => vec!["On", "Off"],
         }
-        */
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "Actix" => Some(WebsocketServer::Actix),
             "Tungstenite" => Some(WebsocketServer::Tungstenite),
+            "On" => Some(WebsocketServer::On),
             _ => None,
         }
     }
@@ -117,8 +120,12 @@ pub enum Database {
 }
 
 impl<'a> Database {
-    pub fn variants() -> Vec<&'a str> {
-        vec!["Postgres(SQLX)", "Off"]
+    pub fn variants(options: &ProjectOptions) -> Vec<&'a str> {
+        match options.web_server {
+            WebServer::Actix => vec!["Postgres(SQLX)", "Off"],
+            WebServer::Axum => vec!["Postgres(SQLX)", "Off"],
+            WebServer::Cloudflare => vec!["TODO: Cloudflare", "Off"],
+        }
     }
 
     pub fn from_str(s: &str) -> Option<Self> {

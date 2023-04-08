@@ -83,7 +83,7 @@ fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions
         let _path_to = path_to.join(&file_name);
         let metadata = entry.metadata()?;
         if metadata.is_dir() {
-            if file_name == ".git" || file_name == "target" {
+            if file_name == ".git" || file_name == "target" || file_name == "build" {
                 continue;
             }
 
