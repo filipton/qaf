@@ -54,19 +54,29 @@ pub enum WebServer {
     #[default]
     Actix,
     Axum,
+    Cloudflare,
 }
 
 impl<'a> WebServer {
     pub fn variants() -> Vec<&'a str> {
         //vec!["Actix", "Axum"]
-        vec!["Actix"]
+        vec!["Actix", "Cloudflare"]
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "Actix" => Some(WebServer::Actix),
             "Axum" => Some(WebServer::Axum),
+            "Cloudflare" => Some(WebServer::Cloudflare),
             _ => None,
+        }
+    }
+
+    pub fn to_str(&self) -> &'a str {
+        match self {
+            WebServer::Actix => "Actix",
+            WebServer::Axum => "Axum",
+            WebServer::Cloudflare => "Cloudflare",
         }
     }
 }

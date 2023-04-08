@@ -16,7 +16,11 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     FnstackConfig::to_file(config, options.path.join("fnstack.json"))?;
 
     println!("Copying files...");
-    walkdir_copy(&templates_path, &options.path, &options)?;
+    walkdir_copy(
+        &templates_path.join(options.web_server.to_str()),
+        &options.path,
+        &options,
+    )?;
 
     println!("Initalizing git...");
     init_git(&git_path, &options.path)?;
