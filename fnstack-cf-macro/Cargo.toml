@@ -1,5 +1,5 @@
 [package]
-name = "fnstack-cf-macro"
+name = "fnstack-macros"
 description = "FnStack route macro"
 version = "0.2.2"
 edition = "2021"
