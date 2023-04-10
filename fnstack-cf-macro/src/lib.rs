@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
-pub fn route(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn any(_attr: TokenStream, item: TokenStream) -> TokenStream {
     item
 }
 
@@ -37,5 +37,11 @@ pub fn delete(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn options(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    item
+}
+
+#[cfg(feature = "axum")]
+#[proc_macro_attribute]
+pub fn trace(_attr: TokenStream, item: TokenStream) -> TokenStream {
     item
 }
