@@ -18,7 +18,20 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
         templates_path = PathBuf::from(path_str);
     }
 
-    if !templates_path.exists() {
+    if templates_path.exists() {
+        let git_status = Command::new(&git_path)
+            .current_dir(&templates_path)
+            .arg("status")
+            .arg("-uno")
+            .output()?;
+        let git_status_str = String::from_utf8(git_status.stdout).unwrap();
+
+        if git_status_str.contains("Your branch is behind") {
+            println!(
+                "\x1b[33mWARNING: Your templates folder is out of date. Run \"cargo fnstack update\" to update it.\x1b[0m"
+            );
+        }
+    } else {
         clone(&git_path, &home_path)?;
     }
 
