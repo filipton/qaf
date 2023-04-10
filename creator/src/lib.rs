@@ -78,7 +78,7 @@ impl<'a> WebServer {
         match self {
             WebServer::Actix => "Actix",
             WebServer::Axum => "Axum",
-            WebServer::Cloudflare => "Cloudflare (Workers)",
+            WebServer::Cloudflare => "Cloudflare",
         }
     }
 }
