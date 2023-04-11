@@ -1,6 +1,6 @@
 [package]
-name = "cargo-fnstack"
-description = "Fnstack cli tool"
+name = "cargo-qaf"
+description = "qaf cli tool"
 license = "MIT"
 version = "0.2.4"
 edition = "2021"
