@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use cargo_qaf::{Database, ProjectOptions, WebServer, WebsocketServer};
+use qaf::{Database, ProjectOptions, WebServer, WebsocketServer};
 
 use crate::config::QafConfig;
 
