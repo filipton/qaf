@@ -3,21 +3,21 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FnstackConfig {
-    pub disable_scopes: bool,
-    pub tmux_single_window: bool,
+pub struct QafConfig {
+    pub watch_cmd: String,
+    pub watch_dir: String,
 }
 
-impl Default for FnstackConfig {
+impl Default for QafConfig {
     fn default() -> Self {
         Self {
-            disable_scopes: false,
-            tmux_single_window: true,
+            watch_cmd: "cargo run".to_string(),
+            watch_dir: "./".to_string(),
         }
     }
 }
 
-impl FnstackConfig {
+impl QafConfig {
     pub fn new() -> Self {
         Self::default()
     }

@@ -7,8 +7,6 @@ use tokio::process::Command;
 
 pub async fn dev() -> Result<()> {
     let path = PathBuf::from("./");
-    //let config_path = PathBuf::from("fnstack.json");
-    //let config = crate::config::FnstackConfig::from_file(config_path)?;
 
     let stop: bool = false;
     let mut last_modify = SystemTime::now()

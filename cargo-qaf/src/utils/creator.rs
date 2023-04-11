@@ -1,9 +1,9 @@
 use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use cargo_fnstack::{Database, ProjectOptions, WebServer, WebsocketServer};
+use cargo_qaf::{Database, ProjectOptions, WebServer, WebsocketServer};
 
-use crate::config::FnstackConfig;
+use crate::config::QafConfig;
 
 pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     let options = ProjectOptions::prompt()?;
@@ -11,9 +11,9 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     println!("Creating project dir...");
     std::fs::create_dir(&options.path)?;
 
-    println!("Creating buildrs config...");
-    let config = FnstackConfig::new();
-    FnstackConfig::to_file(config, options.path.join("fnstack.json"))?;
+    println!("Creating config file...");
+    let config = QafConfig::new();
+    QafConfig::to_file(config, options.path.join("qaf.json"))?;
 
     println!("Copying files...");
     walkdir_copy(

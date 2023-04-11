@@ -16,13 +16,13 @@ pub mod utils {
     pub mod template;
 }
 
-pub const TEMPLATES_REPO: &str = "https://github.com/filipton/fn-stack-templates";
+pub const TEMPLATES_REPO: &str = "https://github.com/filipton/qaf-templates";
 
 #[tokio::main]
 async fn main() {
-    // this fixes error while executing `cargo fnstack ...`
+    // this fixes error while executing `cargo qaf ...`
     let mut args = std::env::args().collect::<Vec<String>>();
-    if args.len() > 1 && args[1] == "fnstack" {
+    if args.len() > 1 && args[1] == "qaf" {
         args.remove(0);
     }
 

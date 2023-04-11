@@ -6,7 +6,7 @@ use crate::{CliArgs, TEMPLATES_REPO};
 
 pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
     let home_path = std::env::var("HOME").map_err(|_| anyhow!("HOME env var not set!"))?;
-    let mut templates_path = PathBuf::from(format!("{}/.fnstack", home_path));
+    let mut templates_path = PathBuf::from(format!("{}/.qaf", home_path));
 
     if args.templates_path.is_some() {
         let path_str = args
@@ -28,7 +28,7 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
 
         if git_status_str.contains("Your branch is behind") {
             println!(
-                "\x1b[33mWARNING: Your templates folder is out of date. Run \"cargo fnstack update\" to update it.\x1b[0m"
+                "\x1b[33mWARNING: Your templates folder is out of date. Run \"cargo qaf update\" to update it.\x1b[0m"
             );
         }
     } else {
@@ -40,14 +40,14 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
 
 pub fn clone(git_path: &PathBuf, home_path: &String) -> anyhow::Result<()> {
     println!(
-            "Cloning templates... (NOTE: you can update them later by running \"cargo fnstack update\")"
+            "Cloning templates... (NOTE: you can update them later by running \"cargo qaf update\")"
         );
 
     let cmd = Command::new(&git_path)
         .current_dir(&home_path)
         .arg("clone")
         .arg(TEMPLATES_REPO)
-        .arg(".fnstack")
+        .arg(".qaf")
         .output();
 
     if cmd.is_err() {
@@ -60,7 +60,7 @@ pub fn clone(git_path: &PathBuf, home_path: &String) -> anyhow::Result<()> {
 
 pub fn update(templates_path: &PathBuf) -> Result<()> {
     let sure = inquire::Confirm::new(
-        "Are you sure? (It will delete all local changes on ~/.fnstack folder)",
+        "Are you sure? (It will delete all local changes on ~/.qaf folder)",
     )
     .prompt()?;
 
