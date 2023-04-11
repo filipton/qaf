@@ -5,8 +5,11 @@ use std::{
 };
 use tokio::process::Command;
 
+use crate::config;
+
 pub async fn dev() -> Result<()> {
-    let path = PathBuf::from("./");
+    let config = config::QafConfig::from_file(PathBuf::from("./qaf.json"))?;
+    let path = PathBuf::from(config.watch_dir);
 
     let stop: bool = false;
     let mut last_modify = SystemTime::now()
@@ -14,7 +17,12 @@ pub async fn dev() -> Result<()> {
         .unwrap()
         .as_millis();
 
-    let mut cmd = Command::new("cargo").arg("run").spawn().unwrap();
+    let mut cmd = Command::new("bash")
+        .arg("-c")
+        .arg(&config.watch_cmd)
+        .spawn()
+        .unwrap();
+
     while !stop {
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 
@@ -23,7 +31,11 @@ pub async fn dev() -> Result<()> {
             last_modify = last;
 
             cmd.kill().await.unwrap();
-            cmd = Command::new("cargo").arg("run").spawn().unwrap();
+            cmd = Command::new("bash")
+                .arg("-c")
+                .arg(&config.watch_cmd)
+                .spawn()
+                .unwrap();
         }
     }
 
