@@ -36,7 +36,6 @@ async fn main() {
 
 async fn process(args: CliArgs) -> Result<()> {
     let git_path = which("git").map_err(|_| anyhow!("Git is not installed!"))?;
-    _ = which("tmux").map_err(|_| anyhow!("Tmux is not installed!"))?;
 
     let templates_path = template::init(&args, &git_path)?;
 

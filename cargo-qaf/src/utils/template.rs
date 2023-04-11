@@ -16,6 +16,15 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
             .replace("~", &home_path);
 
         templates_path = PathBuf::from(path_str);
+    } else {
+        _ = Command::new("bash")
+            .current_dir(&templates_path)
+            .arg("-c")
+            .arg("git fetch &")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .stdin(std::process::Stdio::null())
+            .spawn();
     }
 
     if templates_path.exists() {
@@ -40,8 +49,8 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
 
 pub fn clone(git_path: &PathBuf, home_path: &String) -> anyhow::Result<()> {
     println!(
-            "Cloning templates... (NOTE: you can update them later by running \"cargo qaf update\")"
-        );
+        "Cloning templates... (NOTE: you can update them later by running \"cargo qaf update\")"
+    );
 
     let cmd = Command::new(&git_path)
         .current_dir(&home_path)
@@ -59,10 +68,9 @@ pub fn clone(git_path: &PathBuf, home_path: &String) -> anyhow::Result<()> {
 }
 
 pub fn update(templates_path: &PathBuf) -> Result<()> {
-    let sure = inquire::Confirm::new(
-        "Are you sure? (It will delete all local changes on ~/.qaf folder)",
-    )
-    .prompt()?;
+    let sure =
+        inquire::Confirm::new("Are you sure? (It will delete all local changes on ~/.qaf folder)")
+            .prompt()?;
 
     if !sure {
         return Err(anyhow!("User selected no"));
