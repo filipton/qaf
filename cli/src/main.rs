@@ -20,13 +20,7 @@ pub const TEMPLATES_REPO: &str = "https://github.com/filipton/qaf-templates";
 
 #[tokio::main]
 async fn main() {
-    // this fixes error while executing `cargo qaf ...`
-    let mut args = std::env::args().collect::<Vec<String>>();
-    if args.len() > 1 && args[1] == "qaf" {
-        args.remove(0);
-    }
-
-    let args = CliArgs::parse_from(args);
+    let args = CliArgs::parse();
 
     let res = process(args).await;
     if res.is_err() {

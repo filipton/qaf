@@ -37,7 +37,7 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
 
         if git_status_str.contains("Your branch is behind") {
             println!(
-                "\x1b[33mWARNING: Your templates folder is out of date. Run \"cargo qaf update\" to update it.\x1b[0m"
+                "\x1b[33mWARNING: Your templates folder is out of date. Run \"qaf update\" to update it.\x1b[0m"
             );
         }
     } else {
@@ -49,7 +49,7 @@ pub fn init(args: &CliArgs, git_path: &PathBuf) -> Result<PathBuf> {
 
 pub fn clone(git_path: &PathBuf, home_path: &String) -> anyhow::Result<()> {
     println!(
-        "Cloning templates... (NOTE: you can update them later by running \"cargo qaf update\")"
+        "Cloning templates... (NOTE: you can update them later by running \"qaf update\")"
     );
 
     let cmd = Command::new(&git_path)
