@@ -12,7 +12,11 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     std::fs::create_dir(&options.path)?;
 
     println!("Creating config file...");
-    let config = QafConfig::new();
+    let mut config = QafConfig::new();
+    if options.web_server == WebServer::Cloudflare {
+        config.watch_cmd = "kill $(ps -eo pid,cmd | grep wrangler | grep -v grep | awk '{print $1}') ; sleep 2 ; wrangler dev --local".into();
+    }
+
     QafConfig::to_file(config, options.path.join("qaf.json"))?;
 
     println!("Copying files...");
@@ -22,8 +26,10 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
         &options,
     )?;
 
-    println!("Initalizing git...");
-    init_git(&git_path, &options.path)?;
+    if options.init_git {
+        println!("Initalizing git...");
+        init_git(&git_path, &options.path)?;
+    }
 
     println!("DONE!!!");
     Ok(())
