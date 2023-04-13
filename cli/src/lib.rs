@@ -115,6 +115,8 @@ impl<'a> WebsocketServer {
 pub enum Database {
     #[default]
     Postgres,
+    Chieselstrike,
+    NeonTech,
     Off,
 }
 
@@ -123,13 +125,15 @@ impl<'a> Database {
         match options.web_server {
             WebServer::Actix => vec!["Postgres(SQLX)", "Off"],
             WebServer::Axum => vec!["Postgres(SQLX)", "Off"],
-            WebServer::Cloudflare => vec!["TODO: Cloudflare", "Off"],
+            WebServer::Cloudflare => vec!["Chieselstrike", "neon.tech", "Off"],
         }
     }
 
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "Postgres(SQLX)" => Some(Database::Postgres),
+            "ChieselStrike" => Some(Database::Chieselstrike),
+            "neon.tech" => Some(Database::NeonTech),
             _ => None,
         }
     }
