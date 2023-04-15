@@ -2,6 +2,8 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+use crate::options::{ProjectOptions, WebServer};
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct QafConfig {
     pub watch_cmd: String,
@@ -20,6 +22,15 @@ impl Default for QafConfig {
 impl QafConfig {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn generate(options: &ProjectOptions) -> Result<Self> {
+        let mut config = Self::new();
+        if options.web_server == WebServer::Cloudflare {
+            config.watch_cmd = "kill $(ps -eo pid,cmd | grep wrangler | grep -v grep | awk '{print $1}') ; sleep 2 ; wrangler dev --local".into();
+        }
+
+        Ok(config)
     }
 
     pub fn from_file(path: PathBuf) -> Result<Self> {

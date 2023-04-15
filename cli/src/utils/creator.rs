@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::Command};
 
+use crate::options::{Database, ProjectOptions, WebServer, WebsocketServer};
 use anyhow::{anyhow, Result};
-use qaf::{Database, ProjectOptions, WebServer, WebsocketServer};
 
 use crate::config::QafConfig;
 
@@ -12,11 +12,7 @@ pub fn create_app(git_path: PathBuf, templates_path: PathBuf) -> Result<()> {
     std::fs::create_dir(&options.path)?;
 
     println!("Creating config file...");
-    let mut config = QafConfig::new();
-    if options.web_server == WebServer::Cloudflare {
-        config.watch_cmd = "kill $(ps -eo pid,cmd | grep wrangler | grep -v grep | awk '{print $1}') ; sleep 2 ; wrangler dev --local".into();
-    }
-
+    let config = QafConfig::generate(&options)?;
     QafConfig::to_file(config, options.path.join("qaf.json"))?;
 
     println!("Copying files...");

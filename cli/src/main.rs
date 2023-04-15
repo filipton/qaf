@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Result};
-use clap::Parser;
-use cli::{CliArgs, Commands, DockerCommands};
+use clap::{command, Parser, Subcommand};
 use creator::create_app;
 use std::path::PathBuf;
 use utils::{creator, dev, docker, template};
@@ -8,6 +7,7 @@ use which::which;
 
 mod cli;
 mod config;
+mod options;
 
 pub mod utils {
     pub mod creator;
@@ -55,4 +55,35 @@ async fn process_cli_args(args: &CliArgs, templates_path: &PathBuf) -> Result<()
     }
 
     Ok(())
+}
+
+/*
+ * CLI ARGS
+ */
+#[derive(Parser, Debug)]
+#[command(version)]
+#[command(propagate_version = true)]
+pub struct CliArgs {
+    #[command(subcommand)]
+    pub command: Option<Commands>,
+
+    #[arg(short, long)]
+    pub templates_path: Option<String>,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum Commands {
+    Docker {
+        #[command(subcommand)]
+        command: DockerCommands,
+    },
+    Dev,
+    Update,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum DockerCommands {
+    Build,
+    BuildCached,
+    Run,
 }
