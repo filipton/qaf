@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use utils::{creator, dev, docker, template};
 use which::which;
 
-mod cli;
 mod config;
 mod options;
 

@@ -12,7 +12,13 @@ pub struct ProjectOptions {
     pub websocket_server: Option<WebsocketServer>,
     pub database: Option<Database>,
 
+    pub vercel_settings: VercelSettings,
     pub docker: bool,
+}
+
+#[derive(Debug, Default)]
+pub struct VercelSettings {
+    pub middleware: bool,
 }
 
 impl ProjectOptions {
@@ -87,11 +93,13 @@ impl ProjectOptions {
     }
 
     fn prompt_vercel_settings(&mut self) -> Result<()> {
-        let vercel_project_name = inquire::Text::new("Vercel project name: ")
-            .with_initial_value(&self.name)
-            .prompt()?;
-        let vercel_project_id = inquire::Text::new("Vercel project id: ").prompt()?;
-        let vercel_team_id = inquire::Text::new("Vercel team id: ").prompt()?;
+        if self.web_server != WebServer::Vercel {
+            return Ok(());
+        }
+
+        let middleware =
+            inquire::Confirm::new("Use middleware instead of api routes with rewrite?").prompt()?;
+        self.vercel_settings.middleware = middleware;
 
         Ok(())
     }
@@ -155,6 +163,7 @@ impl<'a> WebsocketServer {
             "Actix" => Some(WebsocketServer::Actix),
             "Tungstenite" => Some(WebsocketServer::Tungstenite),
             "On" => Some(WebsocketServer::On),
+            "Off" => Some(WebsocketServer::Off),
             _ => None,
         }
     }
@@ -182,7 +191,17 @@ impl<'a> Database {
         match s {
             "Postgres(SQLX)" => Some(Database::Postgres),
             "Chieselstrike" => Some(Database::Chieselstrike),
+            "Off" => Some(Database::Off),
             _ => None,
+        }
+    }
+}
+
+impl<'a> VercelSettings {
+    pub fn check_statement(&self, key: &str, value: &str) -> bool {
+        match key {
+            "MIDDLEWARE" => self.middleware && value == "true",
+            _ => false,
         }
     }
 }

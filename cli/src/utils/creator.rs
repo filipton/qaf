@@ -160,6 +160,12 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
 }
 
 fn check_statement(key: &str, value: &str, options: &ProjectOptions) -> bool {
+    if key.starts_with("VERCEL_") {
+        return options
+            .vercel_settings
+            .check_statement(key.trim_start_matches("VERCEL_"), value);
+    }
+
     match key {
         "DATABASE" => Database::from_str(value) == options.database,
         "WEBSOCKET" => WebsocketServer::from_str(value) == options.websocket_server,
