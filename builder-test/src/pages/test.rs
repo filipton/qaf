@@ -5,7 +5,7 @@ use crate::AppState;
 #[derive(Debug, sqlx::FromRow)]
 pub struct Test {
     pub id: i32,
-    pub time: Option<i64>,
+    pub value: i32,
 }
 
 #[get("/")]
@@ -26,12 +26,12 @@ pub async fn add_test(data: Data<AppState>) -> impl Responder {
 
     let id = rand::random::<i32>();
 
-    let row = sqlx::query_as!(Test, "INSERT INTO tests (id) VALUES ($1) RETURNING *", id)
-        .fetch_one(&mut conn)
+    sqlx::query!("INSERT INTO tests (value) VALUES (?)", id)
+        .execute(&mut conn)
         .await
         .unwrap();
 
-    return HttpResponse::Ok().body(format!("Hello {:?}!", row));
+    return HttpResponse::Ok().body(format!("Hello!"));
 }
 
 // THIS WONT BE ADDED TO THE ACTIX SCOPE

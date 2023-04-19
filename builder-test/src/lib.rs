@@ -1,6 +1,6 @@
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct AppState {
-    pub pool: Option<sqlx::postgres::PgPool>,
+    pub pool: sqlx::mysql::MySqlPool,
 }
 
 pub struct StartupOptions {
