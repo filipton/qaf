@@ -174,7 +174,7 @@ pub enum Database {
     #[default]
     Postgres,
     Mysql,
-    Chieselstrike,
+    Planetscale,
     Off,
 }
 
@@ -183,8 +183,8 @@ impl<'a> Database {
         match options.web_server {
             WebServer::Actix => vec!["Postgres(SQLX)", "Mysql(SQLX)", "Off"],
             WebServer::Axum => vec!["Postgres(SQLX)", "Mysql(SQLX)", "Off"],
-            WebServer::Cloudflare => vec!["Chieselstrike", "Off"],
-            WebServer::Vercel => vec!["Chieselstrike", "Off"],
+            WebServer::Cloudflare => vec!["Planetscale", "Off"],
+            WebServer::Vercel => vec!["Planetscale", "Off"],
         }
     }
 
@@ -192,7 +192,7 @@ impl<'a> Database {
         match s {
             "Postgres(SQLX)" => Some(Database::Postgres),
             "Mysql(SQLX)" => Some(Database::Mysql),
-            "Chieselstrike" => Some(Database::Chieselstrike),
+            "Planetscale" => Some(Database::Planetscale),
             "Off" => Some(Database::Off),
             _ => None,
         }
