@@ -127,16 +127,12 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
             || line_trimmed.starts_with("//[[IF ")
         {
             // 0 - #[[IF|//[[IF    1 - DATABASE|WEBSOCKETS|etc...    2 - value
+            // OPTIONAL:           3 - &&,||    4,5 - second if
             let line_trimmed = line_trimmed.replace("]]", "");
             let splitted_args: Vec<&str> = line_trimmed.split(" ").collect();
-            if splitted_args.len() != 3 {
-                panic!("Invalid IF statement!");
-            }
-
-            let if_statement = check_statement(splitted_args[1], splitted_args[2], options);
 
             // If the last IF statement was false, then this one is also false
-            ifs.push(if_statement && ifs.last() != Some(&false));
+            ifs.push(if_statement(splitted_args, options) && ifs.last() != Some(&false));
 
             continue;
         }
@@ -157,6 +153,22 @@ fn generate_file(string: &str, options: &ProjectOptions) -> String {
         &options.name.replace("-", "_").to_lowercase(),
     )
     .replace("project_name_t", &options.name)
+}
+
+fn if_statement(args: Vec<&str>, options: &ProjectOptions) -> bool {
+    if args.len() == 3 {
+        return check_statement(args[1], args[2], options);
+    } else if args.len() == 6 {
+        let statement_1 = check_statement(args[1], args[2], options);
+        let statement_2 = check_statement(args[4], args[4], options);
+
+        return match args[3] {
+            "&&" => statement_1 && statement_2,
+            "||" => statement_1 || statement_1,
+            _ => panic!("Invalid IF statement!"),
+        };
+    }
+    panic!("Invalid IF statement!");
 }
 
 fn check_statement(key: &str, value: &str, options: &ProjectOptions) -> bool {
