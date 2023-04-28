@@ -1,0 +1,11 @@
+[package]
+name = "qaf-router"
+description = "qaf-router"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0.70"
+matchit = "0.7.0"
+serde = { version = "1.0.160", features = ["derive"] }
