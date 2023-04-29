@@ -65,7 +65,7 @@ fn init_git(git_path: &PathBuf, project_path: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-const IGNORED_FILES: [&str; 4] = [".git", "target", "build", ".vercel"];
+const IGNORED_FILES: [&str; 5] = [".git", "target", "build", ".vercel", "pkg"];
 fn walkdir_copy(path_from: &PathBuf, path_to: &PathBuf, options: &ProjectOptions) -> Result<()> {
     for entry in path_from.read_dir()? {
         let entry = entry?;

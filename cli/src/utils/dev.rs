@@ -42,7 +42,7 @@ pub async fn dev() -> Result<()> {
     Ok(())
 }
 
-const EXCLUDED_NAMES: [&str; 2] = ["target", "build"];
+const EXCLUDED_NAMES: [&str; 3] = ["target", "build", "pkg"];
 fn walkdir_modify_date(path: &PathBuf) -> Result<u128> {
     let mut latest_modify = 0u128;
 
