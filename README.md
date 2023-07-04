@@ -1,6 +1,6 @@
-# QAF
-
 <div align="center">
+  <h1>QAF</h1>
+
   <!-- Version -->
   <a href="https://crates.io/crates/qaf">
     <img src="https://img.shields.io/crates/v/qaf.svg?style=flat-square"
@@ -46,3 +46,4 @@ cargo install qaf
 |  Websockets |        Tungstenite        |        Tungstenite        |                              Yes                              |                               No                              |
 |    Docker   |            Yes            |            Yes            |                               No                              |                               No                              |
 | Dev command |            Yes            |            Yes            |                              Yes                              |                              Yes                              |
+

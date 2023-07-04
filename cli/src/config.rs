@@ -26,9 +26,7 @@ impl QafConfig {
 
     pub fn generate(options: &ProjectOptions) -> Result<Self> {
         let mut config = Self::new();
-        if options.web_server == WebServer::Cloudflare {
-            config.watch_cmd = "kill $(ps -eo pid,cmd | grep wrangler | grep -v grep | awk '{print $1}') ; sleep 2 ; wrangler dev --local".into();
-        } else if options.web_server == WebServer::Vercel {
+        if options.web_server == WebServer::Vercel {
             config.watch_cmd = "vercel dev".into();
         }
 
